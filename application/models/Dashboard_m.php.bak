@@ -1,0 +1,117 @@
+<?php
+
+class Aktivatetap_m extends CI_Model {   
+
+    function __construct()
+    {
+        parent::__construct();
+        $this->load->library('datagrid');
+    }
+
+    /**
+     * Get List of Groups
+     *
+     * @access 	public
+     * @param 	
+     * @return 	json(array)
+     */
+
+    public function all()
+    {
+    	$aktivatetap = $this->db->get('aktivatetap')->result();
+		return $aktivatetap;
+    }
+	public function all_aktif()
+    {
+    	$aktivatetap = $this->db->where('id_status',1)->get('aktivatetap')->result();
+		return $aktivatetap;
+    }
+    /**
+     * Get Group by ID
+     *
+     * @access  public
+     * @param   
+     * @return  json(array)
+     */
+
+    public function get_aktivatetap($id)
+    {
+        $query = $this->db->from('aktivatetap g')
+                        ->select('g.*')
+                        ->where('g.id', $id)
+                        ->get();
+
+        return $query->row();
+    }
+
+    /**
+     * Datagrid Data
+     *
+     * @access  public
+     * @param   
+     * @return  json(array)
+     */
+
+    public function getJson($input)
+    {
+        $table  = 'aktiva_tetap as a';
+        $select = 'a.*,k.nama';
+
+        $replace_field  = [
+            ['old_name' => 'kode_aktiva_tetap', 'new_name' => 'a.kode_aktiva_tetap']
+        ];
+
+        $param = [
+            'input'     => $input,
+            'select'    => $select,
+            'table'     => $table,
+            'replace_field' => $replace_field
+        ];
+
+        $data = $this->datagrid->query($param, function($data) use ($input) {
+            return $data->join('kategori_aktiva as k', 'k.id = a.id_kategori_aktiva', 'left');
+        });
+
+        return $data;
+    }
+function cari($id_kategori_aktiva){
+$this->db->select('
+k.umur_ekonomis,
+k.id_akun_aktiva,
+k.id_akun_akum_dep,
+k.id_akun_biaya_dep,
+c1.nama_coa as nama_coa1,
+c1.kode as kode1,
+c2.nama_coa as nama_coa2,
+c2.kode as kode2,
+c3.nama_coa as nama_coa3,
+c3.kode as kode3
+');
+$this->db->from('kategori_aktiva as k');
+$this->db->join('coa as c1','c1.id=k.id_akun_aktiva');
+$this->db->join('coa as c2','c2.id=k.id_akun_akum_dep');
+$this->db->join('coa as c3','c3.id=k.id_akun_biaya_dep');
+$this->db->where('k.id',$id_kategori_aktiva);
+return $this->db->get();
+    }	
+function penyusutan_aktiva_tetap($id){
+$this->db->select('*');
+$this->db->from('penyusutan_aktiva_tetap');
+$this->db->where('id_aktiva_tetap',$id);
+return $this->db->get();
+    }	
+function cari_sub($id_kategori_aktiva){
+$query=$this->db->query('
+SELECT *
+FROM sub_kategori_aktiva
+where 
+id_kategori="'.$id_kategori_aktiva.'"
+');
+$row = $query->result_array();
+				echo "<option value=''>Pilih</option>";
+            foreach ($row as $rows)
+            {                  
+                echo "<option value=".$rows['id'].">".$rows['sub_kategori']."</option>"    ;             
+        }
+}
+}
